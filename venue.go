@@ -1,4 +1,4 @@
-package venue
+package stockfighter
 
 import (
 	"encoding/json"
@@ -21,16 +21,16 @@ type heartbeatResponse struct {
 
 // MakeVenueForExchange takes the name of an exchange and returns a
 // Venue configured for the production api
-func MakeVenueForExchange(name string, account string) (*Venue, error) {
+func MakeVenueForExchange(conf *Configuration) (*Venue, error) {
 	downloader := HTTPDownloader{
 		BaseURL: "https://api.stockfighter.io",
-		Token:   "1bee2c90ff7126245c7fb7dc6ac2e50fd8b43ac0",
+		Token:   conf.Token,
 	}
 
 	venue := Venue{
 		Downloader: &downloader,
-		Account:    account,
-		Name:       name,
+		Account:    conf.VenueAccount,
+		Name:       conf.VenueName,
 	}
 
 	up, err := venue.IsUP()
@@ -38,7 +38,7 @@ func MakeVenueForExchange(name string, account string) (*Venue, error) {
 		return nil, err
 	}
 	if !up {
-		msg := fmt.Sprintf("The venue %s is down", name)
+		msg := fmt.Sprintf("The venue %s is down", conf.VenueName)
 		return nil, errors.New(msg)
 	}
 

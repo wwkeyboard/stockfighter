@@ -1,4 +1,4 @@
-package venue
+package stockfighter
 
 import (
 	"testing"

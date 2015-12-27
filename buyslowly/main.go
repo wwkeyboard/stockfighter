@@ -5,15 +5,19 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/wwkeyboard/stockfighter"
+	sf "github.com/wwkeyboard/stockfighter"
 )
 
 func main() {
-	venueName := os.Args[1]
-	venueAccount := os.Args[2]
-	stockName := os.Args[3]
-	price := os.Args[4]
-	qty := os.Args[5]
+	log.Printf("loading %s", os.Args[1])
+	conf, err := sf.ReadConfig(os.Args[1])
+	if err != nil {
+		log.Fatalf("Could not parse config: %s", err)
+	}
+
+	stockName := os.Args[1]
+	price := os.Args[2]
+	qty := os.Args[3]
 
 	stockPrice, err := strconv.Atoi(price)
 	if err != nil {
@@ -24,9 +28,9 @@ func main() {
 		log.Fatalf("Could not parse quantity %s, %s", qty, err)
 	}
 
-	venue, err := venue.MakeVenueForExchange(venueName, venueAccount)
+	venue, err := sf.MakeVenueForExchange(conf)
 	if err != nil {
-		log.Fatalf("The venue %s is down with error %s", venueName, err)
+		log.Fatalf("The venue %s is down with error %s", conf.VenueName, err)
 	}
 
 	success, err := venue.BuyLimit(stockName, stockPrice, stockQuantity)
