@@ -9,7 +9,6 @@ import (
 )
 
 func main() {
-	log.Printf("loading %s", os.Args[1])
 	conf, err := sf.ReadConfig(os.Args[1])
 	if err != nil {
 		log.Fatalf("Could not parse config: %s", err)
