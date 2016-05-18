@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 )
 
 // Venue represents the stock trading venue
@@ -55,6 +56,10 @@ func (v Venue) orderURL(stock string) string {
 
 func (v Venue) orderbookURL(stock string) string {
 	return fmt.Sprintf("/ob/api/venues/%s/stocks/%s", v.Name, stock)
+}
+
+func (v Venue) quoteURL(stock string) string {
+	return fmt.Sprintf("/ob/api/venues/%s/stocks/%s/quote", v.Name, stock)
 }
 
 // IsUP returns true if the venue is up
@@ -147,4 +152,23 @@ func (v Venue) GetBids(stock string) ([]Bid, error) {
 	}
 
 	return book.Bids, nil
+}
+
+func (v Venue) GetQuoteAsk(stock string) (int, error) {
+	resp, err := v.Downloader.GetJSON(v.quoteURL(stock))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	quote := make(map[string]interface{})
+	err = json.Unmarshal(resp, &quote)
+	if err != nil {
+		return -1, err
+	}
+	ask, err := strconv.Atoi(quote["ask"].(string))
+	if err != nil {
+		return -1, err
+	}
+
+	return ask, nil
 }
