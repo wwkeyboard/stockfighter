@@ -80,6 +80,7 @@ func (v Venue) IsUP() (bool, error) {
 
 // Order is an outgoing order
 type Order struct {
+	ID        int    `json:"id"`
 	Account   string `json:"account"`
 	VenueName string `json:"venue"`
 	Stock     string `json:"stock"`
@@ -90,7 +91,7 @@ type Order struct {
 }
 
 // BuyLimit places a limit order
-func (v Venue) BuyLimit(name string, price int, quantity int) (bool, error) {
+func (v Venue) BuyLimit(name string, price int, quantity int) (*Order, error) {
 	o := Order{
 		Account:   v.Account,
 		VenueName: v.Name,
@@ -104,23 +105,21 @@ func (v Venue) BuyLimit(name string, price int, quantity int) (bool, error) {
 	payload, err := json.Marshal(o)
 	if err != nil {
 		log.Fatal(err)
+		return nil, err
 	}
 
 	resp, err := v.Downloader.PostJSON(v.orderURL(name), payload)
 	if err != nil {
 		log.Fatal(err)
+		return nil, err
 	}
 
 	log.Printf("got: %s", resp)
 
-	//	res := heartbeatResponse{}
-	//	err = json.Unmarshal(resp, &res)
-	//	if err != nil {
-	//		return false, err
-	//	}
+	var orderBack Order
+	json.Unmarshal(resp, orderBack)
 
-	return true, nil
-
+	return &orderBack, nil
 }
 
 // Bid represents a single bid on the orderbook
@@ -160,15 +159,29 @@ func (v Venue) GetQuoteAsk(stock string) (int, error) {
 		log.Fatal(err)
 	}
 
+	fmt.Println("-----")
+	fmt.Println(string(resp))
 	quote := make(map[string]interface{})
 	err = json.Unmarshal(resp, &quote)
 	if err != nil {
 		return -1, err
 	}
-	ask, err := strconv.Atoi(quote["ask"].(string))
-	if err != nil {
-		return -1, err
+
+	if askString, ok := quote["ask"]; ok {
+		ask, err := strconv.Atoi(askString.(string))
+		if err != nil {
+			return -1, err
+		}
+		return ask + 1, nil
 	}
 
-	return ask, nil
+	if bidString, ok := quote["bid"]; ok {
+		bid, err := strconv.Atoi(bidString.(string))
+		if err != nil {
+			return -1, err
+		}
+		return bid - 1, nil
+	}
+
+	return -1, nil
 }

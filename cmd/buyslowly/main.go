@@ -1,15 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
+	"time"
 
 	sf "github.com/wwkeyboard/stockfighter"
 )
 
 func main() {
-	conf, err := sf.ReadConfig(os.Args[1])
+	conFile := os.Args[1]
+	conf, err := sf.ReadConfig(conFile)
 	if err != nil {
 		log.Fatalf("Could not parse config: %s", err)
 	}
@@ -19,8 +22,8 @@ func main() {
 		log.Fatalf("The venue %s is down with error %s", conf.VenueName, err)
 	}
 
-	stockName := os.Args[1]
-	qty := os.Args[2]
+	stockName := os.Args[2]
+	qty := os.Args[3]
 
 	stockQuantity, err := strconv.Atoi(qty)
 	if err != nil {
@@ -34,16 +37,20 @@ func loop(venue *sf.Venue, stockName string, wantQty int) {
 	needQty := wantQty
 	boughtQty := 0
 	// while boughtQty < wantQty
-	for boughtQty < wantQty {
-		price, err := venue.GetQuoteAsk(stockName)
-		// place order
-		success, err := venue.BuyLimit(stockName, price+1, needQty)
-		if err != nil {
-			log.Fatalf("error buying stock %s", err)
-		}
+	//for boughtQty < wantQty {
+	price, err := venue.GetQuoteAsk(stockName)
 
-		// wait
-		// close unfilled order
-		// boughtQty = boughtQty + filledQty
+	// place order
+	currentOrder, err := venue.BuyLimit(stockName, price+1, needQty)
+	if err != nil {
+		log.Fatalf("error buying stock %s", err)
 	}
+
+	// wait
+	time.Sleep(1000)
+	fmt.Println("looking for %s", currentOrder)
+	// close unfilled order
+	// boughtQty = boughtQty + filledQty
+	//}
+	fmt.Println("new boughtQty %s", boughtQty)
 }
