@@ -12,6 +12,7 @@ type Configuration struct {
 	VenueName    string
 	VenueAccount string
 	Token        string
+	Stock        string
 }
 
 // ReadConfig builds a Configuration from the file at filename
